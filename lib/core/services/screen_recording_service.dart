@@ -233,7 +233,7 @@ class ScreenRecordingService extends ChangeNotifier {
       final XFile video = await _cameraController!.stopVideoRecording();
       debugPrint('📹 Raw video path from camera: ${video.path}');
       
-      // Move video from cache to public storage
+      // Move the camera output into the shared gallery collection.
       final String finalPath = await _moveVideoToPublicStorage(video.path);
       
       _isRecording = false;
@@ -251,7 +251,7 @@ class ScreenRecordingService extends ChangeNotifier {
           debugPrint('📊 File size: ${bytes ~/ (1024 * 1024)} MB');
           
           // Trigger media scan on Android to refresh gallery
-          if (Platform.isAndroid) {
+          if (Platform.isAndroid && !finalPath.startsWith('content://')) {
             try {
               await platform.invokeMethod('scanMediaFile', {'path': finalPath});
               debugPrint('✅ Media scan triggered');
@@ -282,11 +282,17 @@ class ScreenRecordingService extends ChangeNotifier {
         String videoDir;
         
         try {
-          // Try to get the public videos directory from native
-          videoDir = await platform.invokeMethod('getVideosDirectory') as String;
-          debugPrint('✅ Got videos directory from native: $videoDir');
+          final String galleryUri = await platform.invokeMethod<String>(
+            'saveVideoToGallery',
+            <String, String>{'path': cachePath},
+          ) ?? '';
+          if (galleryUri.isNotEmpty) {
+            debugPrint('✅ Video saved to gallery: $galleryUri');
+            return galleryUri;
+          }
+          throw StateError('Android gallery returned an empty URI');
         } catch (e) {
-          debugPrint('⚠️ Native getVideosDirectory failed: $e. Using fallback path.');
+          debugPrint('⚠️ Native gallery save failed: $e. Using fallback path.');
           // Fallback: construct the path directly
           // /storage/emulated/0/Movies/Teleprompter
           videoDir = '/storage/emulated/0/Movies/Teleprompter';

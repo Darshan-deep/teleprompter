@@ -1,13 +1,17 @@
 package com.arena.teleprompter.teleprompter
 
+import android.content.ContentValues
 import android.content.Intent
 import android.media.MediaScannerConnection
+import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
+import java.io.FileInputStream
 
 /**
  * Hosts the tiny "keep the screen awake" channel used by the prompter.
@@ -48,6 +52,61 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, GALLERY_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "saveVideoToGallery" -> {
+                        val sourcePath = call.argument<String>("path")
+                        if (sourcePath == null) {
+                            result.error("INVALID_ARGUMENT", "Path is null", null)
+                            return@setMethodCallHandler
+                        }
+
+                        try {
+                            val sourceFile = File(sourcePath)
+                            if (!sourceFile.exists()) {
+                                result.error("FILE_NOT_FOUND", "Recording file does not exist", null)
+                                return@setMethodCallHandler
+                            }
+
+                            val values = ContentValues().apply {
+                                put(MediaStore.Video.Media.DISPLAY_NAME, "teleprompter_${System.currentTimeMillis()}.mp4")
+                                put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                    put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Teleprompter")
+                                    put(MediaStore.Video.Media.IS_PENDING, 1)
+                                }
+                            }
+                            val collection: Uri = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                            } else {
+                                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                            }
+                            val uri = contentResolver.insert(collection, values)
+                                ?: throw IllegalStateException("Could not create gallery item")
+
+                            try {
+                                FileInputStream(sourceFile).use { input ->
+                                    contentResolver.openOutputStream(uri).use { output ->
+                                        requireNotNull(output) { "Could not open gallery item" }
+                                        input.copyTo(output)
+                                    }
+                                }
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                    contentResolver.update(
+                                        uri,
+                                        ContentValues().apply { put(MediaStore.Video.Media.IS_PENDING, 0) },
+                                        null,
+                                        null
+                                    )
+                                }
+                                sourceFile.delete()
+                                result.success(uri.toString())
+                            } catch (copyError: Exception) {
+                                contentResolver.delete(uri, null, null)
+                                throw copyError
+                            }
+                        } catch (error: Exception) {
+                            result.error("SAVE_FAILED", "Failed to save video to gallery: ${error.message}", null)
+                        }
+                    }
                     "scanMediaFile" -> {
                         val path = call.argument<String>("path")
                         if (path != null) {
