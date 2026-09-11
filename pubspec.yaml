@@ -30,6 +30,7 @@ dependencies:
   # Camera for video recording
   camera: ^0.10.5+5
   video_player: ^2.8.1
+  path_provider: ^2.1.1
 
   # Permissions handling
   permission_handler: ^11.0.0
