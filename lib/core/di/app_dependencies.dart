@@ -10,6 +10,7 @@ import '../../features/teleprompter/domain/repositories/settings_repository.dart
 import '../../features/teleprompter/domain/usecases/script_usecases.dart';
 import '../../features/teleprompter/domain/usecases/settings_usecases.dart';
 import '../services/keep_awake_service.dart';
+import '../services/screen_recording_service.dart';
 
 /// Composition root.
 ///
@@ -23,12 +24,14 @@ class AppDependencies {
     required this.teleprompterSettingsRepository,
     required this.appSettingsRepository,
     this.keepAwakeService = const ScreenKeepAwakeService(),
+    this.recordingService,
   });
 
   final ScriptRepository scriptRepository;
   final TeleprompterSettingsRepository teleprompterSettingsRepository;
   final AppSettingsRepository appSettingsRepository;
   final KeepAwakeService keepAwakeService;
+  final ScreenRecordingService? recordingService;
 
   /// Opens local storage and wires the object graph.
   ///
@@ -51,6 +54,7 @@ class AppDependencies {
       appSettingsRepository: AppSettingsRepositoryImpl(
         AppSettingsLocalDataSourceImpl(store),
       ),
+      recordingService: ScreenRecordingService(),
     );
   }
 
@@ -83,6 +87,7 @@ class AppDependencies {
       appSettingsRepository: AppSettingsRepositoryImpl(
         AppSettingsLocalDataSourceImpl(store),
       ),
+      recordingService: ScreenRecordingService(),
     );
   }
 }

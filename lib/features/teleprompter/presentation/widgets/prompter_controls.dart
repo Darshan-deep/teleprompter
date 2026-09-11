@@ -66,6 +66,8 @@ class PrompterControls extends StatelessWidget {
     required this.onToggleGuide,
     required this.onOpenSettings,
     required this.onExit,
+    required this.onToggleRecording,
+    required this.isRecording,
     super.key,
   });
 
@@ -86,6 +88,8 @@ class PrompterControls extends StatelessWidget {
   final VoidCallback onToggleGuide;
   final VoidCallback onOpenSettings;
   final VoidCallback onExit;
+  final VoidCallback onToggleRecording;
+  final ValueNotifier<bool> isRecording;
 
   static const double _fontStep = 2;
 
@@ -197,6 +201,8 @@ class PrompterControls extends StatelessWidget {
           onToggleGuide: onToggleGuide,
           onOpenSettings: onOpenSettings,
           onExit: onExit,
+          onToggleRecording: onToggleRecording,
+          isRecording: isRecording,
         ),
       ],
     );
@@ -255,6 +261,11 @@ class PrompterControls extends StatelessWidget {
               chrome: chrome,
               isActive: settings.mirrored,
               onPressed: onToggleMirror,
+            ),
+            _RecordIconButton(
+              chrome: chrome,
+              isRecording: isRecording,
+              onToggleRecording: onToggleRecording,
             ),
             _ChromeIconButton(
               icon: Icons.tune_rounded,
@@ -349,6 +360,8 @@ class _ActionRow extends StatelessWidget {
     required this.onToggleGuide,
     required this.onOpenSettings,
     required this.onExit,
+    required this.onToggleRecording,
+    required this.isRecording,
   });
 
   final TeleprompterSettings settings;
@@ -357,6 +370,8 @@ class _ActionRow extends StatelessWidget {
   final VoidCallback onToggleGuide;
   final VoidCallback onOpenSettings;
   final VoidCallback onExit;
+  final VoidCallback onToggleRecording;
+  final ValueNotifier<bool> isRecording;
 
   @override
   Widget build(BuildContext context) {
@@ -384,13 +399,15 @@ class _ActionRow extends StatelessWidget {
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _ChromeChip(
-            icon: Icons.tune_rounded,
-            label: 'Settings',
+            icon: Icons.videocam_rounded,
+            label: 'Record',
             chrome: chrome,
-            onPressed: onOpenSettings,
+            isActive: false,
+            onPressed: onToggleRecording,
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
+        
         Expanded(
           child: _ChromeChip(
             icon: Icons.close_rounded,
@@ -588,6 +605,35 @@ class _PrompterSlider extends StatelessWidget {
         ),
         Text(endLabel, style: TextStyle(color: chrome.muted, fontSize: 11)),
       ],
+    );
+  }
+}
+
+
+class _RecordIconButton extends StatelessWidget {
+  const _RecordIconButton({
+    required this.chrome,
+    required this.isRecording,
+    required this.onToggleRecording,
+  });
+
+  final PrompterChrome chrome;
+  final ValueNotifier<bool> isRecording;
+  final VoidCallback onToggleRecording;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: isRecording,
+      builder: (context, recording, _) {
+        return _ChromeIconButton(
+          icon: Icons.videocam_rounded,
+          tooltip: recording ? 'Stop recording' : 'Start recording',
+          chrome: chrome,
+          isActive: recording,
+          onPressed: onToggleRecording,
+        );
+      },
     );
   }
 }

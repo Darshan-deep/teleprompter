@@ -47,6 +47,10 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>This app records video using your device's camera for the teleprompter recording feature.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app records audio using your device's microphone for the teleprompter recording feature.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

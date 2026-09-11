@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.13.3
+  sdk: ^3.12.2
 
 dependencies:
   flutter:
@@ -24,6 +24,16 @@ dependencies:
   # Icons
   cupertino_icons: ^1.0.8
 
+  # Google Fonts
+  google_fonts: ^7.0.0
+
+  # Camera for video recording
+  camera: ^0.10.5+5
+  video_player: ^2.8.1
+
+  # Permissions handling
+  permission_handler: ^11.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -32,10 +42,13 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Prompter typefaces are bundled so the app is fully offline and renders
-  # identically on every platform. All families are chosen for on-camera
-  # legibility rather than decoration.
   fonts:
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit-400.ttf
+          weight: 400
+        - asset: assets/fonts/Outfit-700.ttf
+          weight: 700
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter-400.ttf

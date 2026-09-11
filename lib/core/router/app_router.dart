@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/di/app_dependencies.dart';
+import '../../core/services/screen_recording_service.dart';
 import '../../features/teleprompter/presentation/bloc/app_settings_cubit.dart';
+import '../../features/teleprompter/presentation/bloc/recording_cubit.dart';
 import '../../features/teleprompter/presentation/bloc/script_editor_cubit.dart';
 import '../../features/teleprompter/presentation/bloc/script_list_cubit.dart';
 import '../../features/teleprompter/presentation/bloc/teleprompter_cubit.dart';
@@ -12,7 +15,6 @@ import '../../features/teleprompter/presentation/pages/not_found_page.dart';
 import '../../features/teleprompter/presentation/pages/script_editor_page.dart';
 import '../../features/teleprompter/presentation/pages/settings_page.dart';
 import '../../features/teleprompter/presentation/pages/teleprompter_page.dart';
-import '../di/app_dependencies.dart';
 import 'app_routes.dart';
 
 /// Builds the app's navigator.
@@ -66,7 +68,12 @@ GoRouter createAppRouter() {
               getScript: deps.getScript,
               defaults: settings,
             )..load(id ?? ''),
-            child: TeleprompterPage(scriptId: id ?? ''),
+            child: BlocProvider<RecordingCubit>(
+              create: (BuildContext context) => RecordingCubit(
+                deps.recordingService ?? ScreenRecordingService(),
+              ),
+              child: TeleprompterPage(scriptId: id ?? ''),
+            ),
           );
         },
       ),

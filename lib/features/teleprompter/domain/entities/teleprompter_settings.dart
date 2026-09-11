@@ -20,7 +20,7 @@ class TeleprompterSettings extends Equatable {
     this.showReadingGuide = true,
     this.alignment = TextAlign.left,
     this.themeId = PromptPalette.classicId,
-    this.fontId = ScriptFontFamily.interId,
+    this.fontId = ScriptFontFamily.outfitId,
     this.customBackgroundColor,
     this.customTextColor,
   });

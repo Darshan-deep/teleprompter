@@ -13,6 +13,8 @@ import '../../../../core/theme/prompt_palette.dart';
 import '../../domain/entities/teleprompter_settings.dart';
 import '../../domain/usecases/compute_scroll_speed.dart';
 import '../bloc/app_settings_cubit.dart';
+import '../bloc/recording_cubit.dart';
+import '../bloc/recording_state.dart';
 import '../bloc/teleprompter_cubit.dart';
 import '../bloc/teleprompter_state.dart';
 import '../engine/text_scroll_controller.dart';
@@ -38,6 +40,7 @@ class _TeleprompterPageState extends State<TeleprompterPage>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late final TextScrollController _engine;
   final ValueNotifier<bool> _controlsVisible = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _isRecording = ValueNotifier<bool>(false);
 
   Timer? _hideTimer;
   Timer? _resumeTimer;
@@ -63,6 +66,7 @@ class _TeleprompterPageState extends State<TeleprompterPage>
     _exitImmersiveMode();
     _engine.dispose();
     _controlsVisible.dispose();
+    _isRecording.dispose();
     super.dispose();
   }
 
@@ -208,6 +212,62 @@ class _TeleprompterPageState extends State<TeleprompterPage>
     } else {
       context.go(AppRoutes.home);
     }
+  }
+
+  void _toggleRecording() async {
+    if (!mounted) return;
+    final recordingCubit = context.read<RecordingCubit>();
+    
+    debugPrint('📹 Recording toggle - Current state: ${recordingCubit.state}');
+    
+    if (_isRecording.value) {
+      // Stop recording
+      debugPrint('📹 Stopping recording...');
+      final path = await recordingCubit.stopRecording();
+      _isRecording.value = false;
+      debugPrint('📹 Recording stopped. Path: $path');
+      if (path != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('✅ Video saved: $path')),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(recordingCubit.state is RecordingError
+                ? (recordingCubit.state as RecordingError).message
+                : 'Failed to stop recording'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      // Start recording
+      debugPrint('📹 Starting recording...');
+      await recordingCubit.initialize();
+      debugPrint('📹 Recording service initialized');
+      
+      await recordingCubit.startRecording();
+      debugPrint('📹 Start recording called. New state: ${recordingCubit.state}');
+      
+      if (recordingCubit.state is RecordingRecording) {
+        _isRecording.value = true;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('🔴 Recording started')),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(recordingCubit.state is RecordingError
+                ? (recordingCubit.state as RecordingError).message
+                : 'Failed to start recording'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+    if (mounted) _showControls();
   }
 
   Future<void> _openSettings(TeleprompterState state) async {
@@ -383,6 +443,7 @@ class _TeleprompterPageState extends State<TeleprompterPage>
                       onExit: _exit,
                       onRestart: _restart,
                       onOpenSettings: () => _openSettings(state),
+                      isRecording: _isRecording,
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,
@@ -410,6 +471,8 @@ class _TeleprompterPageState extends State<TeleprompterPage>
                                 context.read<TeleprompterCubit>().toggleReadingGuide,
                             onOpenSettings: () => _openSettings(state),
                             onExit: _exit,
+                            onToggleRecording: _toggleRecording,
+                            isRecording: _isRecording,
                           ),
                         ),
                       ),
@@ -509,6 +572,7 @@ class _TopBar extends StatelessWidget {
     required this.onExit,
     required this.onRestart,
     required this.onOpenSettings,
+    required this.isRecording,
   });
 
   final PrompterChrome chrome;
@@ -518,6 +582,7 @@ class _TopBar extends StatelessWidget {
   final VoidCallback onExit;
   final VoidCallback onRestart;
   final VoidCallback onOpenSettings;
+  final ValueNotifier<bool> isRecording;
 
   @override
   Widget build(BuildContext context) {
@@ -560,6 +625,36 @@ class _TopBar extends StatelessWidget {
                         onPressed: onRestart,
                       ),
                       const SizedBox(width: AppSpacing.xs),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: isRecording,
+                        builder: (context, recording, _) {
+                          if (!recording) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFF3B30),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Text(
+                                  'Recording',
+                                  style: TextStyle(
+                                    color: const Color(0xFFFF3B30),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                       Expanded(
                         child: Text(
                           title,

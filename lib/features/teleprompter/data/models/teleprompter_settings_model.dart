@@ -104,7 +104,7 @@ class TeleprompterSettingsModel {
     for (final ScriptFontFamily font in ScriptFontFamily.values) {
       if (font.id == id) return id;
     }
-    return ScriptFontFamily.interId;
+    return ScriptFontFamily.outfitId;
   }
 
   static Color? _readColor(Object? value) {
