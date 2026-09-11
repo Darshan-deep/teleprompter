@@ -1,0 +1,66 @@
+name: teleprompter
+description: "Teleprompter — a distraction-free, offline script reader for creators."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_bloc: ^9.1.1
+  equatable: ^2.1.0
+
+  # Navigation
+  go_router: ^18.0.1
+
+  # Local persistence (offline-first)
+  shared_preferences: ^2.5.5
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Prompter typefaces are bundled so the app is fully offline and renders
+  # identically on every platform. All families are chosen for on-camera
+  # legibility rather than decoration.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-400.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-500.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-600.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-700.ttf
+          weight: 700
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora-400.ttf
+          weight: 400
+        - asset: assets/fonts/Lora-600.ttf
+          weight: 600
+    - family: AtkinsonHyperlegible
+      fonts:
+        - asset: assets/fonts/Atkinson-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Atkinson-Bold.ttf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-400.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-500.ttf
+          weight: 500

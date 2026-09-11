@@ -1,0 +1,29 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+  errors:
+    todo: ignore
+    # `prefer_initializing_formals` only suggests a form (`this._field`) that is
+    # illegal for named parameters, so it is a pure false positive here.
+    prefer_initializing_formals: ignore
+  exclude:
+    - "**/*.g.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - linux/**
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_print
+    - prefer_final_locals
+    - prefer_single_quotes
+    - sized_box_for_whitespace
+    - unawaited_futures
+    - unnecessary_lambdas
+    - use_super_parameters
